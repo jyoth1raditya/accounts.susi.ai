@@ -32,9 +32,55 @@ export default class ResetPassword extends Component{
 			validEmail:true,
 			validForm:false
 		};
+		this.passwordErrorMessage = '';
+		this.passwordConfirmErrorMessage = '';
+		this.customServerMessage = '';
 	}
 	handleSubmit = (event) => {
-		event.preventDefault();
+			event.preventDefault();
+
+			let defaults = UserPreferencesStore.getPreferences();
+			let BASE_URL = defaults.Server;
+
+			let serverUrl = this.state.serverUrl;
+			if(serverUrl.slice(-1) === '/'){
+					serverUrl = serverUrl.slice(0,-1);
+			}
+			if(serverUrl !== ''){
+					BASE_URL = serverUrl;
+			}
+			console.log(BASE_URL);
+			let signupEndPoint =
+					BASE_URL+'/aaa/recoverpassword.json?email=' + this.state.email +
+					'&password=' + this.state.passwordValue;
+
+			if (!this.state.passwordConfirmError
+					&& !this.state.serverFieldError) {
+					$.ajax({
+							url: signupEndPoint,
+							dataType: 'jsonp',
+							crossDomain: true,
+							timeout: 3000,
+							async: false,
+							success: function (response) {
+									let msg = response.message;
+									let state = this.state;
+									state.msg = msg;
+									state.success = true;
+									this.setState(state);
+
+							}.bind(this),
+							error: function (errorThrown) {
+									let msg = 'Failed. Try Again';
+									let state = this.state;
+									state.msg = msg;
+									state.success = false;
+									this.setState(state);
+
+							}.bind(this)
+					});
+			}
+
 	}
 
 	render(){
